@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ALAS 碧蓝航线自动化</string>
+    <string name="accessibility_service_label">ALAS 无障碍服务</string>
+    <string name="accessibility_service_description">用于向碧蓝航线注入触摸事件，实现设备端自控自动化。</string>
+    <string name="foreground_channel_name">ALAS 自动化运行中</string>
+</resources>

@@ -1,0 +1,53 @@
+{
+  "server": "cn",
+  "device_mode": "adb",
+  "adb_address": "127.0.0.1:5555",
+  "input_method": "adb_shell",
+  "tasks": {
+    "Restart": {
+      "enabled": false,
+      "command": "restart",
+      "success_interval": 0,
+      "failure_interval": 60,
+      "priority": 0,
+      "next_run": 0,
+      "server_update": false
+    },
+    "Commission": {
+      "enabled": true,
+      "command": "commission",
+      "success_interval": 900,
+      "failure_interval": 300,
+      "priority": 30,
+      "next_run": 0,
+      "server_update": true
+    },
+    "Research": {
+      "enabled": true,
+      "command": "research",
+      "success_interval": 1800,
+      "failure_interval": 300,
+      "priority": 40,
+      "next_run": 0,
+      "server_update": true
+    },
+    "Daily": {
+      "enabled": true,
+      "command": "daily",
+      "success_interval": 3600,
+      "failure_interval": 600,
+      "priority": 20,
+      "next_run": 0,
+      "server_update": true
+    },
+    "Reward": {
+      "enabled": true,
+      "command": "reward",
+      "success_interval": 600,
+      "failure_interval": 120,
+      "priority": 10,
+      "next_run": 0,
+      "server_update": true
+    }
+  }
+}

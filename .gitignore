@@ -1,0 +1,14 @@
+# Gradle
+.gradle/
+build/
+app/build/
+local.properties
+
+# IDE
+.idea/
+*.iml
+.DS_Store
+
+# 用户配置与运行时产物
+/config.json
+log/
