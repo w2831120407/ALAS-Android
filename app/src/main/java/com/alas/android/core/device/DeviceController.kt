@@ -1,6 +1,7 @@
 package com.alas.android.core.device
 
 import com.alas.android.core.device.input.AdbShellInput
+import com.alas.android.core.device.input.AdbShellRunner
 import com.alas.android.core.device.input.MinitouchInput
 import com.alas.android.core.device.input.NativeInput
 import com.alas.android.core.device.screencap.AdbScreencap

@@ -20,15 +20,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.alas.android.core.Runtime
 import com.alas.android.core.config.AlasConfig
+import com.alas.android.core.update.AppUpdater
+import com.alas.android.core.update.AssetSyncManager
 import com.alas.android.service.AlasForegroundService
 import com.alas.android.service.ScreenCaptureService
 
 /**
- * 主界面：设备连接设置 + 启动/停止调度。
+ * 主界面：设备连接设置 + 启动/停止调度 + 数据同步/应用更新。
  */
 class MainActivity : ComponentActivity() {
 
     private var connectedProjectionService: ScreenCaptureService? = null
+    private val assetSync = AssetSyncManager(this)
+    private val appUpdater = AppUpdater()
     private val projectionConn = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
             connectedProjectionService = service as? ScreenCaptureService
@@ -44,9 +48,59 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             MaterialTheme {
-                MainScreen(onStartClick = { startAutomation() }, onStopClick = { stopAutomation() })
+                MainScreen(
+                    onStartClick = { startAutomation() },
+                    onStopClick = { stopAutomation() },
+                    onSyncClick = { syncData() },
+                    onCheckUpdateClick = { checkUpdate() },
+                )
             }
         }
+    }
+
+    /** 从 ALAS 上游同步玩法/地图/模板数据。 */
+    private fun syncData() {
+        Thread({
+            try {
+                val config = AlasConfig(this)
+                val changed = assetSync.sync(listOf(config.server))
+                runOnUiThread {
+                    Toast.makeText(
+                        this,
+                        if (changed) "数据同步完成" else "数据已是最新",
+                        Toast.LENGTH_SHORT,
+                    ).show()
+                }
+            } catch (e: Exception) {
+                runOnUiThread {
+                    Toast.makeText(this, "同步失败: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }, "alas-sync").start()
+    }
+
+    /** 检查应用新版本。 */
+    private fun checkUpdate() {
+        Thread({
+            try {
+                val release = appUpdater.latestRelease()
+                val hasUpdate = appUpdater.hasUpdate()
+                runOnUiThread {
+                    val msg = if (release == null) {
+                        "暂无 Release，无法检查更新"
+                    } else if (hasUpdate) {
+                        "发现新版本 ${release.tagName}\n${release.notes.take(80)}"
+                    } else {
+                        "已是最新版本 (${release.tagName})"
+                    }
+                    Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
+                }
+            } catch (e: Exception) {
+                runOnUiThread {
+                    Toast.makeText(this, "检查更新失败: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }, "alas-update").start()
     }
 
     private fun startAutomation() {
@@ -94,6 +148,8 @@ class MainActivity : ComponentActivity() {
 private fun MainScreen(
     onStartClick: () -> Unit,
     onStopClick: () -> Unit,
+    onSyncClick: () -> Unit,
+    onCheckUpdateClick: () -> Unit,
 ) {
     var running by remember { mutableStateOf(Runtime.isRunning()) }
     Column(
@@ -121,6 +177,15 @@ private fun MainScreen(
         }
         if (running) {
             Text("状态：运行中", color = MaterialTheme.colorScheme.primary)
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+        Text("数据与更新", style = MaterialTheme.typography.titleMedium)
+        OutlinedButton(onClick = onSyncClick, modifier = Modifier.fillMaxWidth()) {
+            Text("同步 ALAS 上游数据(模板/地图)")
+        }
+        OutlinedButton(onClick = onCheckUpdateClick, modifier = Modifier.fillMaxWidth()) {
+            Text("检查应用更新")
         }
     }
 }
