@@ -10,8 +10,8 @@ import java.util.concurrent.atomic.AtomicBoolean
  * 数据同步管理器：从 ALAS 上游仓库拉取"自动化功能数据"到本地扩展目录。
  *
  * 同步的内容(对齐 ALAS 上游目录)：
- *  - `assets/<server>/<category>/*.png`  —— 各服玩法截图模板
- *  - `campaign/*`                          —— 地图数据(章节/活动海域)
+ *  - `assets/&lt;server&gt;/&lt;category&gt;/` 下的 PNG 截图模板 —— 各服玩法截图模板
+ *  - `campaign/` 目录 —— 地图数据(章节/活动海域)
  *  - 玩法相关 JSON/配置
  *
  * 下载后放入 `files/` 下的对应扩展目录。`core.base.ResourceManager` 在加载模板时
