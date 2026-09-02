@@ -3,7 +3,6 @@ package com.alas.android
 import android.app.Application
 import com.alas.android.core.base.AlasLog
 import com.alas.android.core.base.ResourceManager
-import org.opencv.android.BaseLoaderCallback
 import org.opencv.android.OpenCVLoader
 
 /**

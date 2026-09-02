@@ -1,5 +1,6 @@
 package com.alas.android.core.device
 
+import com.alas.android.core.device.input.AdbShellRunner
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.util.concurrent.TimeUnit

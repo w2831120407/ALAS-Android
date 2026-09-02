@@ -126,7 +126,7 @@ class TemplateLoader {
         return synchronized(owner) {
             cache.getOrPut(key) {
                 // 通过全局 ResourceManager 加载(见 game/handler 或 resources)
-                ResourceManager.instance.load(key)
+                ResourceManager.load(key)
             }
         }
     }

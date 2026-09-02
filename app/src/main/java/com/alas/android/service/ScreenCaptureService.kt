@@ -2,6 +2,7 @@ package com.alas.android.service
 
 import android.app.Activity
 import android.app.Service
+import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.media.projection.MediaProjection

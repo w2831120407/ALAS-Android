@@ -29,6 +29,12 @@ class DeviceController private constructor(
 
     val resolution: Pair<Int, Int> get() = screenWidth to screenHeight
 
+    /** 连接模式。 */
+    enum class ConnectionMode { SELF_CONTROL, ADB }
+
+    /** 输入实现选择。 */
+    enum class InputKind { ADB_SHELL, MINITOUCH, NATIVE, ACCESSIBILITY }
+
     /** 截取一帧用于识别。 */
     fun screenshot(): Screenshot {
         throttle()
@@ -76,12 +82,6 @@ class DeviceController private constructor(
 
     companion object {
         private const val SCREENSHOT_INTERVAL_MS = 100L
-
-        /** 连接模式。 */
-        enum class ConnectionMode { SELF_CONTROL, ADB }
-
-        /** 输入实现选择。 */
-        enum class InputKind { ADB_SHELL, MINITOUCH, NATIVE, ACCESSIBILITY }
 
         /** 设备端自控模式构造(MediaProjection 截图 + 原生输入)。 */
         fun selfControl(

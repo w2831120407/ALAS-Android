@@ -69,7 +69,7 @@ class ButtonGrid(
                 val x = start.x + c * stepX
                 val y = start.y + r * stepY
                 val area = Roi(x, y, start.width, start.height)
-                add(Button(area = area, buttonArea = area, name = "$prefix_${r}_$c"))
+                add(Button(area = area, buttonArea = area, name = "${prefix}_${r}_$c"))
             }
         }
     }

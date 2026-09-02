@@ -79,7 +79,7 @@ class TemplateImage private constructor(
         fun fromAssets(context: Context, assetPath: String): TemplateImage {
             val data = context.assets.open(assetPath).use { it.readBytes() }
             val src = Mat()
-            Utils.matFromBitmap(android.graphics.BitmapFactory.decodeByteArray(data, 0, data.size), src)
+            Utils.bitmapToMat(android.graphics.BitmapFactory.decodeByteArray(data, 0, data.size), src)
             val name = File(assetPath).nameWithoutExtension.uppercase()
             val binary = ImageUtils.otsuBinarize(src)
             val luma = ImageUtils.rgb2Luma(src)
@@ -91,7 +91,7 @@ class TemplateImage private constructor(
          */
         fun fromFile(file: File): TemplateImage {
             val src = Mat()
-            Utils.matFromBitmap(android.graphics.BitmapFactory.decodeFile(file.absolutePath), src)
+            Utils.bitmapToMat(android.graphics.BitmapFactory.decodeFile(file.absolutePath), src)
             val name = file.nameWithoutExtension.uppercase()
             val binary = ImageUtils.otsuBinarize(src)
             val luma = ImageUtils.rgb2Luma(src)

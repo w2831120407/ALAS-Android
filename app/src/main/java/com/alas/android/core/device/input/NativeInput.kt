@@ -48,7 +48,9 @@ class NativeInput : Input {
     private fun inject(event: android.view.InputEvent) {
         val m = injectMethod ?: return
         m.invoke(inputManager, event, INJECT_MODE_ASYNC)
-        event.recycle()
+        if (event is MotionEvent) {
+            event.recycle()
+        }
     }
 
     override fun click(x: Int, y: Int) {
@@ -137,12 +139,12 @@ class NativeInput : Input {
         )
     }
 
-    private fun pointerProperty(contact: Int) = android.view.PointerProperties().apply {
+    private fun pointerProperty(contact: Int) = MotionEvent.PointerProperties().apply {
         id = contact
         toolType = android.view.MotionEvent.TOOL_TYPE_FINGER
     }
 
-    private fun pointerCoord(x: Float, y: Float, pressure: Float) = android.view.PointerCoords().apply {
+    private fun pointerCoord(x: Float, y: Float, pressure: Float) = MotionEvent.PointerCoords().apply {
         this.x = x
         this.y = y
         this.pressure = pressure
@@ -179,9 +181,9 @@ internal class PointersState {
         pointers.remove(contact)
     }
 
-    fun coords(): Array<android.view.PointerCoords> {
+    fun coords(): Array<MotionEvent.PointerCoords> {
         val list = pointers.values.sortedBy { it.id }.map { p ->
-            android.view.PointerCoords().apply {
+            MotionEvent.PointerCoords().apply {
                 x = p.x.toFloat()
                 y = p.y.toFloat()
                 pressure = 1f
@@ -190,9 +192,9 @@ internal class PointersState {
         return list.toTypedArray()
     }
 
-    fun props(): Array<android.view.PointerProperties> {
+    fun props(): Array<MotionEvent.PointerProperties> {
         val list = pointers.values.sortedBy { it.id }.map { p ->
-            android.view.PointerProperties().apply {
+            MotionEvent.PointerProperties().apply {
                 id = p.id
                 toolType = android.view.MotionEvent.TOOL_TYPE_FINGER
             }
