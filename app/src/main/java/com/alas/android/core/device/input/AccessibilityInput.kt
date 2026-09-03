@@ -4,7 +4,6 @@ import android.accessibilityservice.AccessibilityService
 import android.graphics.Path
 import android.os.SystemClock
 import android.view.KeyEvent
-import android.view.accessibility.AccessibilityEvent
 import com.alas.android.core.device.Input
 import kotlin.math.max
 

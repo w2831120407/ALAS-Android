@@ -7,7 +7,6 @@ import android.content.ServiceConnection
 import android.media.projection.MediaProjectionManager
 import android.os.Bundle
 import android.os.IBinder
-import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent

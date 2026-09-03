@@ -1,6 +1,5 @@
 package com.alas.android.core.device.screencap
 
-import com.alas.android.core.device.Input
 import com.alas.android.core.device.Screencap
 import com.alas.android.core.device.ScreencapException
 import com.alas.android.core.vision.Screenshot
