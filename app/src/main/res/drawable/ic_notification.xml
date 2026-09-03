@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 前台服务通知 smallIcon：必须是纯 alpha 通道的白色形状；这里用一个实心方块占位，
+     Android 5+ 通知栏会自动把非透明像素渲染成白色/灰色。避免使用 adaptive-icon/layer-list，
+     否则在某些 ROM 上会报 "Invalid notification (no valid small icon)" 导致 RemoteServiceException。 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="#FFFFFF" />
+</shape>

@@ -2,14 +2,12 @@ package com.alas.android.core
 
 import android.accessibilityservice.AccessibilityService
 import android.content.Context
-import com.alas.android.core.base.AlasLog
 import com.alas.android.core.config.AlasConfig
 import com.alas.android.core.device.AdbRunner
 import com.alas.android.core.device.DeviceController
 import com.alas.android.core.device.screencap.AdbScreencap
 import com.alas.android.core.device.screencap.MediaProjectionScreencap
 import com.alas.android.core.device.input.AccessibilityInput
-import com.alas.android.core.device.input.MinitouchInput
 import com.alas.android.core.device.input.NativeInput
 import com.alas.android.core.game.commission.CommissionTask
 import com.alas.android.core.game.daily.DailyTask

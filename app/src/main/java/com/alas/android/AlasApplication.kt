@@ -7,22 +7,39 @@ import org.opencv.android.OpenCVLoader
 
 /**
  * 应用入口：初始化 OpenCV 与全局资源管理器。
+ * 所有初始化步骤都必须用 try/catch 包裹，避免 Application.onCreate 抛异常导致进程直接被杀(秒闪退)。
  */
 class AlasApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        ResourceManager.init(this)
-        initOpenCV()
+        try {
+            ResourceManager.init(this)
+        } catch (t: Throwable) {
+            AlasLog.e("ResourceManager.init failed", t)
+        }
+        try {
+            initOpenCV()
+        } catch (t: Throwable) {
+            AlasLog.e("OpenCV init crashed (non-fatal, disable CV features)", t)
+        }
     }
 
     private fun initOpenCV() {
-        val success = OpenCVLoader.initLocal()
+        val success = try {
+            OpenCVLoader.initLocal()
+        } catch (t: UnsatisfiedLinkError) {
+            AlasLog.e("OpenCV native lib load failed", t)
+            false
+        } catch (t: Throwable) {
+            AlasLog.e("OpenCVLoader.initLocal exception", t)
+            false
+        }
         if (success) {
             AlasLog.i("OpenCV initialized")
         } else {
-            AlasLog.e("OpenCV failed to initialize locally")
-            // 可回退到 OpenCVManager 下载方案
+            AlasLog.w("OpenCV failed to initialize locally — CV features disabled")
+            // 此处不中断应用：自动化的连接设置/调度/配置 UI 仍可工作
         }
     }
 }

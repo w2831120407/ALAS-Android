@@ -61,7 +61,7 @@ data class TaskConfig(
             return TaskConfig(
                 name = name,
                 enabled = obj.optBoolean("enabled", false),
-                command = obj.optString("command", name.toLowerCase()),
+                command = obj.optString("command", name.lowercase()),
                 successInterval = obj.optLong("success_interval", 600),
                 failureInterval = obj.optLong("failure_interval", 120),
                 priority = obj.optInt("priority", 100),

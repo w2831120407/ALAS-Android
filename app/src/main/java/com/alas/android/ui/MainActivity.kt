@@ -1,23 +1,26 @@
 package com.alas.android.ui
 
-import android.app.Activity
+import android.Manifest
 import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
+import android.content.pm.PackageManager
 import android.media.projection.MediaProjectionManager
 import android.os.Bundle
 import android.os.IBinder
-import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import com.alas.android.core.Runtime
 import com.alas.android.core.config.AlasConfig
 import com.alas.android.core.update.AppUpdater
@@ -43,18 +46,62 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    // POST_NOTIFICATIONS 运行时权限请求器 (API 33+)
+    private val requestNotificationPermission =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { /* 无论是否授予都继续 */ }
+
+    // MediaProjection / 其他 Activity 结果统一在这里处理 (替代废弃的 onActivityResult)
+    private val projectionLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult(),
+    ) { result ->
+        if (result.resultCode == RESULT_OK && result.data != null) {
+            startProjectionService(result.resultCode, result.data!!)
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContent {
-            MaterialTheme {
-                MainScreen(
-                    onStartClick = { startAutomation() },
-                    onStopClick = { stopAutomation() },
-                    onSyncClick = { syncData() },
-                    onCheckUpdateClick = { checkUpdate() },
-                )
+        try {
+            enableEdgeToEdge()
+        } catch (t: Throwable) {
+            // enableEdgeToEdge 在极个别 SDK 级别的设备上有兼容性问题，跳过即可，不至于闪退
+        }
+        // Android 13+ 前台服务/通知必须先取得 POST_NOTIFICATIONS 运行时权限，
+        // 否则 startForeground 会抛出 SecurityException 直接闪退。
+        ensureNotificationPermission()
+
+        try {
+            setContent {
+                MaterialTheme {
+                    MainScreen(
+                        onStartClick = { safeRun(::startAutomation) },
+                        onStopClick = { safeRun(::stopAutomation) },
+                        onSyncClick = { safeRun(::syncData) },
+                        onCheckUpdateClick = { safeRun(::checkUpdate) },
+                    )
+                }
             }
+        } catch (t: Throwable) {
+            // Compose 主题/资源缺失也不能闪退——降级到一个基础 Toast UI
+            Toast.makeText(this, "UI 初始化失败: ${t.message}", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    private fun ensureNotificationPermission() {
+        val granted = ContextCompat.checkSelfPermission(
+            this, Manifest.permission.POST_NOTIFICATIONS,
+        ) == PackageManager.PERMISSION_GRANTED
+        if (!granted && android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            requestNotificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
+
+    /** 把按钮回调包一层 try/catch：任何业务异常都 toast 出来而不是闪退。 */
+    private inline fun safeRun(block: () -> Unit) {
+        try {
+            block()
+        } catch (t: Throwable) {
+            Toast.makeText(this, "操作失败: ${t.message}", Toast.LENGTH_LONG).show()
         }
     }
 
@@ -115,31 +162,36 @@ class MainActivity : ComponentActivity() {
     /** 设备端自控需先请求 MediaProjection 授权。 */
     private fun requestProjection() {
         val mpm = getSystemService(MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
-        startActivityForResult(mpm.createScreenCaptureIntent(), REQ_PROJECTION)
-    }
-
-    @Deprecated("Deprecated in Java")
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == REQ_PROJECTION && resultCode == Activity.RESULT_OK && data != null) {
-            startProjectionService(resultCode, data)
-        }
+        projectionLauncher.launch(mpm.createScreenCaptureIntent())
     }
 
     private fun startProjectionService(resultCode: Int, data: Intent) {
         val intent = ScreenCaptureService.buildIntent(this, resultCode, data)
-        startForegroundService(intent)
-        bindService(intent, projectionConn, BIND_AUTO_CREATE)
+        try {
+            startForegroundService(intent)
+            bindService(intent, projectionConn, Context.BIND_AUTO_CREATE)
+        } catch (t: Throwable) {
+            Toast.makeText(this, "截图服务启动失败: ${t.message}", Toast.LENGTH_LONG).show()
+            return
+        }
         Runtime.start(this, projectionHolder = connectedProjectionService)
-        startForegroundService(Intent(this, AlasForegroundService::class.java))
+        try {
+            startForegroundService(Intent(this, AlasForegroundService::class.java))
+        } catch (t: Throwable) {
+            Toast.makeText(this, "前台服务启动失败: ${t.message}", Toast.LENGTH_LONG).show()
+        }
     }
 
     private fun stopAutomation() {
         Runtime.stop()
+        try {
+            unbindService(projectionConn)
+        } catch (_: Throwable) { /* 未绑定时忽略 */ }
         Toast.makeText(this, "已停止", Toast.LENGTH_SHORT).show()
     }
 
     companion object {
+        @Suppress("unused")
         private const val REQ_PROJECTION = 100
     }
 }

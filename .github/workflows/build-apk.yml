@@ -1,6 +1,6 @@
 name: Build Android APK
 
-# 每次推送到 main / master，以及手动触发、打 tag 时，都会编译出安卓 APK。
+# 每次推送到 main / master、打 tag、手动触发、PR 时构建 APK
 on:
   push:
     branches: [main, master]
@@ -8,6 +8,16 @@ on:
   pull_request:
     branches: [main, master]
   workflow_dispatch:
+    inputs:
+      build_type:
+        description: '构建类型'
+        required: true
+        default: 'both'
+        type: choice
+        options:
+          - both
+          - debug
+          - release
 
 permissions:
   contents: write
@@ -15,30 +25,62 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    env:
+      # 构建类型：debug / release / both
+      BUILD_TYPE: ${{ github.event.inputs.build_type || 'both' }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
-
-      # 使用已提交的 Gradle wrapper；若仓库未含 wrapper 则由 gradle/actions 生成。
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
+          cache: 'gradle'
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build debug APK
-        run: ./gradlew assembleDebug --no-daemon
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-encryption-key: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
+          gradle-home-cache-cleanup: true
 
-      - name: Build release APK (unsigned)
-        run: ./gradlew assembleRelease --no-daemon
+      # 解码并写入签名密钥（如果在 Secrets 中配置了 SIGNING_KEYSTORE_BASE64）
+      - name: Prepare signing keystore
+        env:
+          SIGNING_KEYSTORE_BASE64: ${{ secrets.SIGNING_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$SIGNING_KEYSTORE_BASE64" ]; then
+            echo "$SIGNING_KEYSTORE_BASE64" | base64 -d > "$HOME/keystore.jks"
+            echo "SIGNING_STORE_FILE=$HOME/keystore.jks" >> "$GITHUB_ENV"
+            echo "SIGNING_STORE_PASSWORD=${{ secrets.SIGNING_STORE_PASSWORD }}" >> "$GITHUB_ENV"
+            echo "SIGNING_KEY_ALIAS=${{ secrets.SIGNING_KEY_ALIAS }}" >> "$GITHUB_ENV"
+            echo "SIGNING_KEY_PASSWORD=${{ secrets.SIGNING_KEY_PASSWORD }}" >> "$GITHUB_ENV"
+            echo "已配置签名密钥，Release APK 将被签名"
+          else
+            echo "未配置签名密钥（SIGNING_KEYSTORE_BASE64 为空），Release APK 将为未签名版本"
+          fi
+
+      # 构建 Debug APK（仅当构建类型不是仅 release 时）
+      - name: Build debug APK
+        if: env.BUILD_TYPE != 'release'
+        run: ./gradlew assembleDebug --no-daemon --stacktrace
+
+      # 构建 Release APK：push/tag 事件总是构建；手动触发时按用户选择
+      - name: Build release APK
+        if: github.event_name == 'push' || env.BUILD_TYPE == 'release' || env.BUILD_TYPE == 'both'
+        run: ./gradlew assembleRelease --no-daemon --stacktrace
 
       - name: Upload debug APK artifact
+        if: env.BUILD_TYPE != 'release'
         uses: actions/upload-artifact@v4
         with:
           name: alas-debug-apk
@@ -46,17 +88,29 @@ jobs:
           if-no-files-found: error
 
       - name: Upload release APK artifact
+        if: github.event_name == 'push' || env.BUILD_TYPE == 'release' || env.BUILD_TYPE == 'both'
         uses: actions/upload-artifact@v4
         with:
           name: alas-release-apk
           path: app/build/outputs/apk/release/*.apk
           if-no-files-found: warn
 
-      # 打 tag 时自动发布 Release，附上 APK。
+      - name: Upload mapping (if minify enabled)
+        if: always()
+        uses: actions/upload-artifact@v4
+        continue-on-error: true
+        with:
+          name: alas-mapping
+          path: app/build/outputs/mapping/**/*.txt
+          if-no-files-found: ignore
+
+      # 打 tag 时自动发布 Release 并附上 APK
       - name: Publish release on tag
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
+          generate_release_notes: true
+          fail_on_unmatched_files: false
           files: |
             app/build/outputs/apk/debug/*.apk
             app/build/outputs/apk/release/*.apk

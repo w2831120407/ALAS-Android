@@ -37,22 +37,30 @@ class ScreenCaptureService : Service() {
     }
 
     private fun startForegroundCompat() {
-        // 简化：使用最小通知。正式实现应构建 Notification。
-        val channelId = "alas_projection"
-        val nm = getSystemService(NOTIFICATION_SERVICE) as android.app.NotificationManager
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            nm.createNotificationChannel(
-                android.app.NotificationChannel(channelId, "屏幕捕获", android.app.NotificationManager.IMPORTANCE_LOW)
-            )
-        }
-        val notification = android.app.Notification.Builder(this, channelId)
-            .setContentTitle("ALAS 屏幕捕获")
-            .setContentText("设备端自控运行中")
-            .build()
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
-            startForeground(2, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION)
-        } else {
-            startForeground(2, notification)
+        try {
+            val channelId = "alas_projection"
+            val nm = getSystemService(NOTIFICATION_SERVICE) as android.app.NotificationManager
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                nm.createNotificationChannel(
+                    android.app.NotificationChannel(
+                        channelId, "屏幕捕获",
+                        android.app.NotificationManager.IMPORTANCE_LOW,
+                    ),
+                )
+            }
+            val notification = android.app.Notification.Builder(this, channelId)
+                .setContentTitle("ALAS 屏幕捕获")
+                .setContentText("设备端自控运行中")
+                .setSmallIcon(com.alas.android.R.drawable.ic_notification)
+                .build()
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                startForeground(2, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION)
+            } else {
+                startForeground(2, notification)
+            }
+        } catch (t: Throwable) {
+            // 缺通知权限 / 前台服务类型权限时也不要闪退：保持服务后台但不展示通知
+            android.util.Log.w("ALAS", "ScreenCapture startForeground skipped: ${t.message}")
         }
     }
 
