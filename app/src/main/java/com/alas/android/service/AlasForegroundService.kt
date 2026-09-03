@@ -31,26 +31,31 @@ class AlasForegroundService : Service() {
     }
 
     private fun startInForeground() {
-        val channelId = "alas_foreground"
-        val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            nm.createNotificationChannel(
-                NotificationChannel(channelId, "ALAS 自动化", NotificationManager.IMPORTANCE_LOW)
+        try {
+            val channelId = "alas_foreground"
+            val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                nm.createNotificationChannel(
+                    NotificationChannel(channelId, "ALAS 自动化", NotificationManager.IMPORTANCE_LOW)
+                )
+            }
+            val pi = PendingIntent.getActivity(
+                this, 0,
+                Intent(this, MainActivity::class.java),
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
             )
+            val notification: Notification = NotificationCompat.Builder(this, channelId)
+                .setContentTitle("ALAS 自动化运行中")
+                .setContentText("碧蓝航线脚本正在后台调度")
+                .setSmallIcon(R.drawable.ic_notification)
+                .setContentIntent(pi)
+                .setOngoing(true)
+                .build()
+            startForeground(1, notification)
+        } catch (t: Throwable) {
+            // POST_NOTIFICATIONS 权限未授予、前台服务类型权限缺失 等情况下也不要 crash
+            AlasLog.w("startForeground skipped: ${t.message}")
         }
-        val pi = PendingIntent.getActivity(
-            this, 0,
-            Intent(this, MainActivity::class.java),
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-        )
-        val notification: Notification = NotificationCompat.Builder(this, channelId)
-            .setContentTitle("ALAS 自动化运行中")
-            .setContentText("碧蓝航线脚本正在后台调度")
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
-            .setContentIntent(pi)
-            .setOngoing(true)
-            .build()
-        startForeground(1, notification)
     }
 
     override fun onDestroy() {
