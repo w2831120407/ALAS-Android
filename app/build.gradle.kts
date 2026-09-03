@@ -79,8 +79,9 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-service:2.8.6")
     implementation("androidx.preference:preference-ktx:1.2.1")
 
-    // OpenCV 图像识别层(社区维护的 Android AAR 包，含 org.opencv.android.* 与各架构 .so)
-    implementation("com.quickbirdstudios:opencv:4.9.0")
+    // OpenCV 图像识别层(官方 Android AAR 包，已发布至 Maven Central)
+    // 官网：https://www.opencv.ai/blog/opencv-for-android-distribution
+    implementation("org.opencv:opencv:5.0.0.1")
 
     // JSON 配置解析
     implementation("org.json:json:20240303")
