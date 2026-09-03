@@ -38,8 +38,9 @@ class Timer(private var interval: Double = 0.0) {
         return this
     }
 
-    /** 对齐 ALAS 的 `timer.wait()`：阻塞直到到达 interval。 */
-    fun wait() {
+    /** 对齐 ALAS 的 `timer.wait()`：阻塞直到到达 interval。
+     *  Kotlin 中故意不命名为 wait()，避免与 java.lang.Object.wait() 产生 JVM 签名冲突。 */
+    fun waitUntil() {
         val remainMs = (remain() * 1000).toLong()
         if (remainMs > 0) {
             try {
