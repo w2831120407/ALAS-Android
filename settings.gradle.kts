@@ -14,5 +14,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "ALAS-Android"
+rootProject.name = "Nowdex-Android"
 include(":app")

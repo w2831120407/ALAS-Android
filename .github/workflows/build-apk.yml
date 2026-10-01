@@ -1,6 +1,5 @@
-name: Build Android APK
+name: Build Nowdex Android APK
 
-# 每次推送到 main / master，以及手动触发、打 tag 时，都会编译出安卓 APK。
 on:
   push:
     branches: [main, master]
@@ -25,7 +24,6 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      # 使用已提交的 Gradle wrapper；若仓库未含 wrapper 则由 gradle/actions 生成。
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
@@ -41,18 +39,17 @@ jobs:
       - name: Upload debug APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: alas-debug-apk
+          name: nowdex-debug-apk
           path: app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
 
       - name: Upload release APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: alas-release-apk
+          name: nowdex-release-apk
           path: app/build/outputs/apk/release/*.apk
           if-no-files-found: warn
 
-      # 打 tag 时自动发布 Release，附上 APK。
       - name: Publish release on tag
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2

@@ -1,61 +1,62 @@
-# ALAS-Android
+# Nowdex-Android
 
-**碧蓝航线 (Azur Lane) 自动化脚本的安卓版。**
+**在 Android 上查看 Codex、Claude、Cursor 等 AI 智能体的用量与额度。**
 
-参照明日方舟小助手 **MAA (MaaAssistantArknights)** 的 Android 端技术方案，将 **ALAS (AzurLaneAutoScript)** 的 Python 架构移植到 Android 平台：
+[Nowdex](https://nowdex.app) 安卓版：把 AI 剩余额度和重置时间放到 Android 主屏幕和通知栏上——不用开着 Mac，也不用打开网页。灵感来自 [CodexBar](https://github.com/steipete/CodexBar)。
 
-- **设备端自控**：`MediaProjection` 截图 + 原生 `InputManager`/无障碍手势注入，免电脑运行。
-- **ADB 控制 / 无线调试**：`adb screencap` 截图 + `adb shell input`/`minitouch` 触控注入。
-- **OpenCV 模板匹配** 识别层：`TM_CCOEFF_NORMED`，相似度阈值 0.85，二进制/亮度变体。
-- **配置驱动调度器**：按 `next_run` + 优先级 + 启用状态取任务，成功后自动写回 `NextRun` 实现"无缝续跑"。
+## 功能
 
-## 技术架构
+- **状态页**：一览所有已启用 AI 服务的额度用量（5 小时窗口 / 每周 / 每月）、剩余百分比、重置时间。
+- **用量页**：今日 Token 数与费用、输入/输出/缓存命中/缓存写入构成、模型费用明细、每日活动热力图、连续活跃天数、月度预估。
+- **主屏幕小组件**：单服务额度小组件，浅色/深色自适应，点击打开应用。
+- **常驻通知**：通知栏常驻显示各服务额度，是 Mac 菜单栏在 Android 上的等价实现。
+- **设置页**：服务开关、主题（跟随系统/浅色/深色）、通知与自动刷新、隐私说明。
 
-| 层 | 位置 | 对应 MAA / ALAS 概念 |
-| --- | --- | --- |
-| Android 壳 | `ui/` `service/` | MaaTouch app / MAA GUI |
-| 运行时引导 | `core/Runtime.kt` | ALAS `alas.py` |
-| 设备控制 | `core/device/` | MAA `ControllerAPI` / ALAS `module/device` |
-| 识别层 | `core/vision/` | MAA `Vision` / ALAS `module/base/template.py` |
-| 调度层 | `core/scheduler/` `core/config/` | ALAS 中央调度器 / `module/config` |
-| 基础层 | `core/base/` | ALAS `module/base` |
+## 支持的服务
 
-详细说明见 [docs/01-架构设计.md](docs/01-架构设计.md)，构建部署见 [docs/02-构建与部署.md](docs/02-构建与部署.md)。
+Codex · Claude · Cursor · Grok · Kimi · GLM · MiniMax · Qoder · DeepSeek · OpenCode Go
+
+## 隐私
+
+- 凭证保存在设备本地（加密存储）。
+- 由设备直接向各服务请求用量，Nowdex 不在自己的服务器上保存密码或用量。
+- 无需注册 Nowdex 账号。
+
+> 当前仓库使用 Mock 数据演示完整 UI。接入真实数据时，为每个服务实现 Provider（OAuth / Cookie / API Key / CLI 会话）即可，无需改动 UI 层。
+
+## 技术栈
+
+- Kotlin + Jetpack Compose + Material 3
+- DataStore（偏好设置）
+- Glance（主屏幕 App Widget）
+- 前台服务（常驻通知）
+
+## 构建
+
+```bash
+./gradlew assembleDebug      # Debug APK
+./gradlew assembleRelease    # Release APK（未签名）
+```
+
+需要 JDK 17 + Android SDK 34。CI 见 `.github/workflows/build-apk.yml`。
 
 ## 目录结构
 
 ```
-ALAS-Android/
-├─ app/src/main/
-│  ├─ AndroidManifest.xml
-│  ├─ res/                      # 资源与无障碍配置
-│  └─ java/com/alas/android/
-│     ├─ AlasApplication.kt     # 入口，初始化 OpenCV/资源
-│     ├─ ui/MainActivity.kt     # 主界面
-│     ├─ service/               # 前台服务 / 无障碍 / MediaProjection
-│     └─ core/
-│        ├─ Runtime.kt          # 装配：config->device->scheduler
-│        ├─ device/             # 截图源 + 输入注入 + ADB
-│        ├─ vision/             # 模板匹配 / 按钮 / ROI
-│        ├─ base/               # 日志 / 异常 / 定时器 / ModuleBase / 资源
-│        ├─ config/             # 任务调度配置
-│        ├─ scheduler/          # 中央调度器
-│        └─ game/               # 玩法模块(委托/科研/每日/通用弹窗)
-└─ docs/                        # 架构 / 构建部署 / 模块映射文档
+app/src/main/java/com/nowdex/android/
+├─ NowdexApplication.kt       # 入口，通知渠道
+├─ MainActivity.kt            # 底部导航：状态 / 用量 / 设置
+├─ data/
+│  ├─ model/                  # AiService / ServiceQuota / DailyUsage 等
+│  ├─ repository/             # UsageRepository + MockUsageRepository
+│  ├─ SettingsStore.kt        # DataStore 偏好
+│  └─ AppContainer.kt         # 简易依赖容器
+├─ ui/
+│  ├─ theme/                  # Material 3 深浅色主题
+│  ├─ components/             # ServiceCard / QuotaBar 等
+│  ├─ status/                 # 状态页
+│  ├─ usage/                  # 用量页
+│  └─ settings/               # 设置页
+├─ widget/                    # Glance 主屏幕小组件
+└─ service/                   # 常驻通知前台服务
 ```
-
-## 快速开始
-
-1. 安装 **Android Studio** + JDK 17 + Android SDK 34。
-2. `./gradlew assembleDebug` 构建。
-3. 选择运行模式：
-   - **设备端自控**：开启无障碍服务，授予屏幕录制权限。
-   - **ADB / 无线调试**：`adb connect <ip>:<port>` 后填写连接地址。
-4. 将游戏截图模板放入 `assets/templates/<server>/<category>/`。
-5. 校准各按钮坐标(当前代码中坐标为示意占位)。
-
-## 许可与声明
-
-本项目为学习研究用途，请勿用于违反游戏用户协议的用途。碧蓝航线图片资源版权归游戏厂商所有。
-
-详见 [docs/](docs/) 目录。
