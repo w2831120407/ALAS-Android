@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nowdex Android 下载</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #0f172a;
+    color: #e2e8f0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .card {
+    background: #1e293b;
+    border-radius: 16px;
+    padding: 40px;
+    max-width: 520px;
+    width: 100%;
+    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+  }
+  .logo {
+    width: 72px;
+    height: 72px;
+    background: linear-gradient(135deg, #06b6d4, #3b82f6);
+    border-radius: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 24px;
+  }
+  h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .subtitle {
+    color: #94a3b8;
+    margin-bottom: 32px;
+    font-size: 15px;
+  }
+  .version {
+    display: inline-block;
+    background: #334155;
+    color: #cbd5e1;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 13px;
+    margin-bottom: 24px;
+  }
+  .download-btn {
+    display: block;
+    width: 100%;
+    padding: 16px 24px;
+    background: linear-gradient(135deg, #06b6d4, #3b82f6);
+    color: white;
+    text-decoration: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 12px;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .download-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(6, 182, 212, 0.3);
+  }
+  .download-btn.secondary {
+    background: #334155;
+  }
+  .download-btn.secondary:hover {
+    box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+  }
+  .info {
+    margin-top: 24px;
+    padding: 16px;
+    background: #0f172a;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #94a3b8;
+    line-height: 1.6;
+  }
+  .info strong { color: #cbd5e1; }
+  .file-size {
+    font-size: 13px;
+    color: #64748b;
+    margin-top: 4px;
+  }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">N</div>
+    <h1>Nowdex for Android</h1>
+    <p class="subtitle">AI 服务额度追踪 · 本地隐私优先</p>
+    <span class="version">v1.0.0 · Debug Build</span>
+
+    <a href="/nowdex-debug.apk" class="download-btn" download>
+      ⬇ 下载 Nowdex APK（已签名，可直接安装）
+    </a>
+    <p class="file-size">约 18 MB</p>
+
+    <div class="info">
+      <strong>安装说明：</strong><br>
+      1. 点击上方按钮下载 APK 文件<br>
+      2. 在手机「设置 → 安全」中允许「未知来源」安装<br>
+      3. 打开下载的 APK 文件即可安装<br>
+      <br>
+      <strong>功能亮点：</strong><br>
+      • 状态页：查看各 AI 服务额度用量与重置时间<br>
+      • 用量页：Token 统计、模型费用、活动热力图<br>
+      • 设置页：服务管理、主题切换<br>
+      • 桌面小组件 & 持久化通知
+    </div>
+  </div>
+</body>
+</html>
